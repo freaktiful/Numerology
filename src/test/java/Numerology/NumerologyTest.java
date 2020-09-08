@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,17 +22,18 @@ public class NumerologyTest {
     
     public class Numerology {
     	public List<Integer> replaceEachNineForTwoTens(List<Integer> in) {
-            //return in.stream().map(o -> o == 9 ? 1 : o).collect(Collectors.toList());
-    		List<Integer> out = new ArrayList<Integer>();
-    		for (int i = 0; i< in.size(); i++) {
-    			if (in.get(i).equals(9)) {
-    				out.add(10);
-    				out.add(10);
-    			} else {
-    				out.add(in.get(i));
-    			}
-    		}
-    		return out;
+    		List<Integer> rep = Arrays.asList(10,10);
+//    		List<Integer> out = new ArrayList<Integer>();
+    		return  (in.stream().map(c -> c == 9 ? rep : Arrays.asList(c)).collect(Collectors.toList())).stream().flatMap(List::stream).collect(Collectors.toList());    		
+//    		for (int i = 0; i< in.size(); i++) {
+//    			if (in.get(i).equals(9)) {
+//    				out.add(10);
+//    				out.add(10);
+//    			} else {
+//    				out.add(in.get(i));
+//    			}
+//    		}
+//    		return out;
         }
     }
 }
