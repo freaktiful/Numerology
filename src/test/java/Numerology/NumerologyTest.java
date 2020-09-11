@@ -17,48 +17,126 @@ public class NumerologyTest {
     @Test 
     public void testReplaceEachNineForTwoTens() {
         Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,1,3,4,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.replaceEachNineForTwoTens(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
+        assertEquals(Arrays.asList(1,1,3,4,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.applyRules(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
+       // assertEquals(Arrays.asList(1,2,3,4,5,6,7,8,10,10,10), numerology.applyRules(Arrays.asList(1,2,3,4,5,6,7,8,9,10)));
     }
     
     @Test
     public void testReplaceAllTwosByOnesNumberToTheLeft() {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(3,1,1,1,3,4,5), numerology.replaceEachNineForTwoTens(Arrays.asList(3,2,3,4,5)));
+        assertEquals(Arrays.asList(3,1,1,1,3,4,5), numerology.applyRules(Arrays.asList(3,2,3,4,5)));
     }
     
     @Test
     public void testReplaceAllSixsByThreesNumberToTheRightPositionsNumberToTheLeft () {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,3,3,3,3,4,5), numerology.replaceEachNineForTwoTens(Arrays.asList(1,6,3,4,5)));
+        assertEquals(Arrays.asList(1,3,3,3,3,4,5), numerology.applyRules(Arrays.asList(1,6,3,4,5)));
     }
     
     public class Numerology {
-    	public List<Integer> replaceEachNineForTwoTens(List<Integer> in) {
-    		List<Integer> rep = Arrays.asList(10,10);
+//    	public List<Integer> applyRules(List<Integer> in) {
+//    		List<Integer> out = new ArrayList<Integer>();
+//    		for (int i = 0; i< in.size(); i++) {
+//    			switch(in.get(i)) {
+//    			case 9:
+//    				out.add(10);
+//    				out.add(10);
+//    				break;
+//    			case 2:
+//    				for(int j=0; j<in.get(i-1); j++) {
+//    					out.add(1);
+//    				}
+//    				break;
+//    			case 6:
+//    				Integer index = in.get(i-1);
+//    				for (int j=0; j<in.get(i + index); j++) {
+//    					out.add(3);
+//    				}
+//    				break;
+//    			default:
+//    				out.add(in.get(i));
+//    			}
+//    		}
+//    		return out;
+//    	}
+    	
+    	public List<Integer> applyRules(List<Integer> in) {
+    		RuleApplier ruleApplier = new RuleApplier();
+    		ruleApplier.addRule(new RuleReplaceNineForTens());
+    		ruleApplier.addRule(new RuleReplaceTwosForOnes());
+    		ruleApplier.addRule(new RuleReplaceSixsForThrees());
+    		
+    		return ruleApplier.applyRules(in);
+    	}
+    }
+    
+    public class RuleApplier {
+    	
+    	private List<IRule> rules = new ArrayList<IRule>();
+    	
+    	public List<Integer> applyRules(List<Integer> input){
+    		for (IRule rule: rules) {
+    			input = rule.apply(input);
+    		}
+    		return input;
+    	}
+
+		public void addRule(IRule rule) {
+			rules.add(rule);		
+		}
+    }
+    
+    public interface IRule {   	
+    	public  List<Integer> apply(List<Integer> input);
+    }
+    
+    public class RuleReplaceNineForTens implements IRule {
+		@Override
+		public List<Integer> apply(List<Integer> input) {
+			List<Integer> rep = Arrays.asList(10,10);
+			return (input.stream().map(c -> c == 9 ? rep : Arrays.asList(c)).collect(Collectors.toList())).stream().flatMap(List::stream).collect(Collectors.toList());    		
+		}
+    }
+    
+    public class RuleReplaceTwosForOnes implements IRule {
+
+		@Override
+		public List<Integer> apply(List<Integer> input) {
     		List<Integer> out = new ArrayList<Integer>();
-//   		return  (in.stream().map(c -> c == 9 ? rep : Arrays.asList(c)).collect(Collectors.toList())).stream().flatMap(List::stream).collect(Collectors.toList());    		
-    		for (int i = 0; i< in.size(); i++) {
-    			switch(in.get(i)) {
-    			case 9:
-    				out.add(10);
-    				out.add(10);
-    				break;
+    		for (int i = 0; i< input.size(); i++) {
+    			switch(input.get(i)) {
     			case 2:
-    				for(int j=0; j<in.get(i-1); j++) {
+    				for(int j=0; j<input.get(i-1); j++) {
     					out.add(1);
     				}
     				break;
-    			case 6:
-    				Integer index = in.get(i-1);
-    				for (int j=0; j<in.get(i + index); j++) {
-    					out.add(3);
-    				}
-    				break;
     			default:
-    				out.add(in.get(i));
+    				out.add(input.get(i));
     			}
     		}
     		return out;
     	}
+    }
+    
+    public class RuleReplaceSixsForThrees implements IRule {
+
+		@Override
+		public List<Integer> apply(List<Integer> input) {
+    		List<Integer> out = new ArrayList<Integer>();
+    		for (int i = 0; i< input.size(); i++) {
+    			switch(input.get(i)) {
+    			case 6:
+    				Integer index = input.get(i-1);
+    				for (int j=0; j<input.get(i + index); j++) {
+    					out.add(3);
+    				}
+    				break;
+    			default:
+    				out.add(input.get(i));
+    			}
+    		}
+    		return out;
+		}
+    	
     }
 }
