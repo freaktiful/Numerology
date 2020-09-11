@@ -17,23 +17,48 @@ public class NumerologyTest {
     @Test 
     public void testReplaceEachNineForTwoTens() {
         Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,2,3,4,5,6,7,8,10,10,10), numerology.replaceEachNineForTwoTens(Arrays.asList(1,2,3,4,5,6,7,8,9,10)));
+        assertEquals(Arrays.asList(1,1,3,4,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.replaceEachNineForTwoTens(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
+    }
+    
+    @Test
+    public void testReplaceAllTwosByOnesNumberToTheLeft() {
+    	Numerology numerology = new Numerology();
+        assertEquals(Arrays.asList(3,1,1,1,3,4,5), numerology.replaceEachNineForTwoTens(Arrays.asList(3,2,3,4,5)));
+    }
+    
+    @Test
+    public void testReplaceAllSixsByThreesNumberToTheRightPositionsNumberToTheLeft () {
+    	Numerology numerology = new Numerology();
+        assertEquals(Arrays.asList(1,3,3,3,3,4,5), numerology.replaceEachNineForTwoTens(Arrays.asList(1,6,3,4,5)));
     }
     
     public class Numerology {
     	public List<Integer> replaceEachNineForTwoTens(List<Integer> in) {
     		List<Integer> rep = Arrays.asList(10,10);
-//    		List<Integer> out = new ArrayList<Integer>();
-    		return  (in.stream().map(c -> c == 9 ? rep : Arrays.asList(c)).collect(Collectors.toList())).stream().flatMap(List::stream).collect(Collectors.toList());    		
-//    		for (int i = 0; i< in.size(); i++) {
-//    			if (in.get(i).equals(9)) {
-//    				out.add(10);
-//    				out.add(10);
-//    			} else {
-//    				out.add(in.get(i));
-//    			}
-//    		}
-//    		return out;
-        }
+    		List<Integer> out = new ArrayList<Integer>();
+//   		return  (in.stream().map(c -> c == 9 ? rep : Arrays.asList(c)).collect(Collectors.toList())).stream().flatMap(List::stream).collect(Collectors.toList());    		
+    		for (int i = 0; i< in.size(); i++) {
+    			switch(in.get(i)) {
+    			case 9:
+    				out.add(10);
+    				out.add(10);
+    				break;
+    			case 2:
+    				for(int j=0; j<in.get(i-1); j++) {
+    					out.add(1);
+    				}
+    				break;
+    			case 6:
+    				Integer index = in.get(i-1);
+    				for (int j=0; j<in.get(i + index); j++) {
+    					out.add(3);
+    				}
+    				break;
+    			default:
+    				out.add(in.get(i));
+    			}
+    		}
+    		return out;
+    	}
     }
 }
