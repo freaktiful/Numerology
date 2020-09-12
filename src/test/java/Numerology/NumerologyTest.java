@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,9 +61,9 @@ public class NumerologyTest {
     	
     	public List<Integer> applyRules(List<Integer> in) {
     		RuleApplier ruleApplier = new RuleApplier();
-    		ruleApplier.addRule(new RuleReplaceNineForTens());
-    		ruleApplier.addRule(new RuleReplaceTwosForOnes());
-    		ruleApplier.addRule(new RuleReplaceSixsForThrees());
+    		ruleApplier.addRule(new RuleReplaceNineForTens(9));
+    		ruleApplier.addRule(new RuleReplaceTwosForOnes(2));
+    		ruleApplier.addRule(new RuleReplaceSixsForThrees(6));
     		
     		return ruleApplier.applyRules(in);
     	}
@@ -72,71 +71,83 @@ public class NumerologyTest {
     
     public class RuleApplier {
     	
-    	private List<IRule> rules = new ArrayList<IRule>();
+    	private List<Rule> rules = new ArrayList<Rule>();
+    	
+    	public void addRule(Rule rule) {
+			rules.add(rule);		
+		}
     	
     	public List<Integer> applyRules(List<Integer> input){
-    		for (IRule rule: rules) {
+    		for (Rule rule: rules) {
     			input = rule.apply(input);
     		}
     		return input;
     	}
-
-		public void addRule(IRule rule) {
-			rules.add(rule);		
-		}
     }
     
-    public interface IRule {   	
-    	public  List<Integer> apply(List<Integer> input);
-    }
-    
-    public class RuleReplaceNineForTens implements IRule {
-		@Override
-		public List<Integer> apply(List<Integer> input) {
-			List<Integer> rep = Arrays.asList(10,10);
-			return (input.stream().map(c -> c == 9 ? rep : Arrays.asList(c)).collect(Collectors.toList())).stream().flatMap(List::stream).collect(Collectors.toList());    		
-		}
-    }
-    
-    public class RuleReplaceTwosForOnes implements IRule {
-
-		@Override
-		public List<Integer> apply(List<Integer> input) {
-    		List<Integer> out = new ArrayList<Integer>();
+    abstract class Rule {   	
+    	
+    	public Integer centinel;
+    	
+    	public Rule(Integer c) {
+    		centinel = c;
+    	}
+    	
+    	List<Integer> output = new ArrayList<Integer>();
+    	
+    	public  List<Integer> apply(List<Integer> input) { 		
     		for (int i = 0; i< input.size(); i++) {
-    			switch(input.get(i)) {
-    			case 2:
-    				for(int j=0; j<input.get(i-1); j++) {
-    					out.add(1);
-    				}
-    				break;
-    			default:
-    				out.add(input.get(i));
+    			if(input.get(i).equals(centinel)) {
+    				applyRule(input,i);
+    			} else {
+    				output.add(input.get(i));
     			}
     		}
-    		return out;
+    		return output;
+    	}
+
+		abstract void applyRule(List<Integer> in, Integer i);
+    }
+    
+    public class RuleReplaceNineForTens extends Rule {  
+    	public Integer centinel = 9;
+    	
+    	public RuleReplaceNineForTens(Integer c) {
+    		super(c);
+    	}
+    	
+		public void applyRule(List<Integer> input, Integer i) {
+			output.add(10);
+			output.add(10);
+		}
+    }
+    
+    public class RuleReplaceTwosForOnes extends Rule {
+    	public Integer centinel = 2;
+    	
+    	public RuleReplaceTwosForOnes(Integer c) {
+    		super(c);
+    	}
+    	
+		public void applyRule(List<Integer> input, Integer i) {
+			for(int j=0; j<input.get(i-1); j++) {
+				output.add(1);
+    		}
     	}
     }
     
-    public class RuleReplaceSixsForThrees implements IRule {
-
-		@Override
-		public List<Integer> apply(List<Integer> input) {
-    		List<Integer> out = new ArrayList<Integer>();
-    		for (int i = 0; i< input.size(); i++) {
-    			switch(input.get(i)) {
-    			case 6:
-    				Integer index = input.get(i-1);
-    				for (int j=0; j<input.get(i + index); j++) {
-    					out.add(3);
-    				}
-    				break;
-    			default:
-    				out.add(input.get(i));
-    			}
-    		}
-    		return out;
-		}
+    public class RuleReplaceSixsForThrees extends Rule {
+    	public Integer centinel = 6;
     	
+    	public RuleReplaceSixsForThrees(Integer c) {
+    		super(c);
+    	}
+    	
+		public void applyRule(List<Integer> input, Integer i) {
+			Integer index = input.get(i-1);
+    		for (int j=0; j<input.get(i + index); j++) {
+    			output.add(3);
+    		}
+		}
     }
 }
