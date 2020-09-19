@@ -16,138 +16,86 @@ public class NumerologyTest {
     @Test 
     public void testReplaceEachNineForTwoTens() {
         Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,1,3,4,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.applyRules(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
-       // assertEquals(Arrays.asList(1,2,3,4,5,6,7,8,10,10,10), numerology.applyRules(Arrays.asList(1,2,3,4,5,6,7,8,9,10)));
+        assertEquals(Arrays.asList(1,1,3,4,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
     }
     
     @Test
     public void testReplaceAllTwosByOnesNumberToTheLeft() {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(3,1,1,1,3,4,5), numerology.applyRules(Arrays.asList(3,2,3,4,5)));
+        assertEquals(Arrays.asList(3,1,1,1,3,4,5), numerology.generateOutput(Arrays.asList(3,2,3,4,5)));
     }
     
     @Test
     public void testReplaceAllSixsByThreesNumberToTheRightPositionsNumberToTheLeft () {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,3,3,3,3,4,5), numerology.applyRules(Arrays.asList(1,6,3,4,5)));
+        assertEquals(Arrays.asList(1,3,3,3,3,4,5), numerology.generateOutput(Arrays.asList(1,6,3,4,5)));
     }
+    
     
     public class Numerology {
-//    	public List<Integer> applyRules(List<Integer> in) {
-//    		List<Integer> out = new ArrayList<Integer>();
-//    		for (int i = 0; i< in.size(); i++) {
-//    			switch(in.get(i)) {
-//    			case 9:
-//    				out.add(10);
-//    				out.add(10);
-//    				break;
-//    			case 2:
-//    				for(int j=0; j<in.get(i-1); j++) {
-//    					out.add(1);
-//    				}
-//    				break;
-//    			case 6:
-//    				Integer index = in.get(i-1);
-//    				for (int j=0; j<in.get(i + index); j++) {
-//    					out.add(3);
-//    				}
-//    				break;
-//    			default:
-//    				out.add(in.get(i));
-//    			}
-//    		}
-//    		return out;
-//    	}
+	
+    	public List<ApplyRuleInterface> rules = 
+    			Arrays.asList(
+    					new NoRule(), 
+    					new NoRule(), 
+    					new RuleReplaceTwosForOnes(),
+    					new NoRule(),
+    					new NoRule(),
+    					new NoRule(),
+    					new RuleReplaceSixsForThrees(),
+    					new NoRule(),
+    					new NoRule(),
+    					new RuleReplaceNineForTens()
+    			);
     	
-    	public List<Integer> applyRules(List<Integer> in) {
-    		RuleApplier ruleApplier = new RuleApplier();
-    		ruleApplier.addRule(new RuleReplaceNineForTens(9));
-    		ruleApplier.addRule(new RuleReplaceTwosForOnes(2));
-    		ruleApplier.addRule(new RuleReplaceSixsForThrees(6));
-    		
-    		return ruleApplier.applyRules(in);
-    	}
-    }
-    
-    public class RuleApplier {
-    	
-    	private List<Rule> rules = new ArrayList<Rule>();
-    	
-    	public void addRule(Rule rule) {
-			rules.add(rule);		
-		}
-    	
-    	public List<Integer> applyRules(List<Integer> input){
-    		for (Rule rule: rules) {
-    			input = rule.apply(input);
-    		}
-    		return input;
-    	}
-    }
-    
-    abstract class Rule {   	
-    	
-    	public Integer centinel;
-    	
-    	public Rule(Integer c) {
-    		centinel = c;
-    	}
-    	
-    	List<Integer> output = new ArrayList<Integer>();
-    	
-    	public  List<Integer> apply(List<Integer> input) { 		
+    	public List<Integer> generateOutput(List<Integer> input) {
+    		List<Integer> output = new ArrayList<Integer>();
     		for (int i = 0; i< input.size(); i++) {
-    			if(input.get(i).equals(centinel)) {
-    				applyRule(input,i);
+    			if (input.get(i) < 10) {
+    				output.addAll(rules.get(input.get(i)).applyRule(input, i));
     			} else {
-    				output.add(input.get(i));
+    				output.addAll(new NoRule().applyRule(input, i));
     			}
     		}
     		return output;
     	}
-
-		abstract void applyRule(List<Integer> in, Integer i);
     }
     
-    public class RuleReplaceNineForTens extends Rule {  
-    	public Integer centinel = 9;
+    public interface ApplyRuleInterface {   	
     	
-    	public RuleReplaceNineForTens(Integer c) {
-    		super(c);
+		public List<Integer> applyRule(List<Integer> input, Integer index);
+    }
+    
+    public class NoRule implements ApplyRuleInterface {
+    	public List<Integer> applyRule(List<Integer> input, Integer index) {
+    		return Arrays.asList(input.get(index));
     	}
-    	
-		public void applyRule(List<Integer> input, Integer i) {
-			output.add(10);
-			output.add(10);
+    }
+    
+    public class RuleReplaceNineForTens implements ApplyRuleInterface {    	
+		public List<Integer> applyRule(List<Integer> input, Integer index) {
+			return Arrays.asList(10, 10);
 		}
     }
     
-    public class RuleReplaceTwosForOnes extends Rule {
-    	public Integer centinel = 2;
-    	
-    	public RuleReplaceTwosForOnes(Integer c) {
-    		super(c);
-    	}
-    	
-		public void applyRule(List<Integer> input, Integer i) {
-			for(int j=0; j<input.get(i-1); j++) {
+    public class RuleReplaceTwosForOnes implements ApplyRuleInterface {  	
+		public List<Integer> applyRule(List<Integer> input, Integer index) {
+			List<Integer> output = new ArrayList<Integer>();
+			for(int j=0; j<input.get(index-1); j++) {
 				output.add(1);
     		}
+			return output;
     	}
     }
     
-    public class RuleReplaceSixsForThrees extends Rule {
-    	public Integer centinel = 6;
-    	
-    	public RuleReplaceSixsForThrees(Integer c) {
-    		super(c);
-    	}
-    	
-		public void applyRule(List<Integer> input, Integer i) {
+    public class RuleReplaceSixsForThrees implements ApplyRuleInterface {
+		public List<Integer> applyRule(List<Integer> input, Integer i) {
+			List<Integer> output = new ArrayList<Integer>();
 			Integer index = input.get(i-1);
     		for (int j=0; j<input.get(i + index); j++) {
     			output.add(3);
     		}
+    		return output;
 		}
     }
 }
