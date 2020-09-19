@@ -16,19 +16,28 @@ public class NumerologyTest {
     @Test 
     public void testReplaceEachNineForTwoTens() {
         Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,1,3,4,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
+        assertEquals(Arrays.asList(1,1,5,3,3,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
     }
     
     @Test
     public void testReplaceAllTwosByOnesNumberToTheLeft() {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(3,1,1,1,3,4,5), numerology.generateOutput(Arrays.asList(3,2,3,4,5)));
+        assertEquals(Arrays.asList(5,1,1,1,5,3,5), numerology.generateOutput(Arrays.asList(3,2,3,4,5)));
     }
     
     @Test
     public void testReplaceAllSixsByThreesNumberToTheRightPositionsNumberToTheLeft () {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,3,3,3,3,4,5), numerology.generateOutput(Arrays.asList(1,6,3,4,5)));
+        assertEquals(Arrays.asList(1,3,3,3,5,3,5), numerology.generateOutput(Arrays.asList(1,6,3,4,5)));
+    }
+    
+    @Test
+    public void testReplaceEachThreeWithFiveIfNotFollowedByFiveAndReplaceEachFourByThreeIfNotPreceededByFive() {
+    	Numerology numerology = new Numerology();
+    	assertEquals(Arrays.asList(3,5), numerology.generateOutput(Arrays.asList(3,5)));
+    	assertEquals(Arrays.asList(5,15), numerology.generateOutput(Arrays.asList(3,15)));
+    	assertEquals(Arrays.asList(5,4), numerology.generateOutput(Arrays.asList(5,4)));
+    	assertEquals(Arrays.asList(15,3), numerology.generateOutput(Arrays.asList(15,4)));
     }
     
     
@@ -39,8 +48,8 @@ public class NumerologyTest {
     					new NoRule(), 
     					new NoRule(), 
     					new RuleReplaceTwosForOnes(),
-    					new NoRule(),
-    					new NoRule(),
+    					new RuleReplaceThreeByFive(),
+    					new RuleReplaceFourByThree(),
     					new NoRule(),
     					new RuleReplaceSixsForThrees(),
     					new NoRule(),
@@ -97,5 +106,27 @@ public class NumerologyTest {
     		}
     		return output;
 		}
+    }
+    
+    public class RuleReplaceThreeByFive implements ApplyRuleInterface {
+    	public List<Integer> applyRule(List<Integer> input, Integer index) {
+    		Integer following = input.get(index + 1);
+    		if (!following.equals(5)) {
+    			return Arrays.asList(5);
+    		} else {
+    			return Arrays.asList(input.get(index));
+    		}
+    	}
+    }
+    
+    public class RuleReplaceFourByThree implements ApplyRuleInterface {
+    	public List<Integer> applyRule(List<Integer> input, Integer index) {
+    		Integer preceeded = input.get(index - 1);
+    		if(!preceeded.equals(5)) {
+    			return Arrays.asList(3);
+    		} else {
+    			return Arrays.asList(input.get(index));
+    		}
+    	}
     }
 }
