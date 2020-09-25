@@ -16,13 +16,13 @@ public class NumerologyTest {
     @Test 
     public void testReplaceEachNineForTwoTens() {
         Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,1,5,3,3,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
+        assertEquals(Arrays.asList(1,1,5,3,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
     }
     
     @Test
     public void testReplaceAllTwosByOnesNumberToTheLeft() {
     	Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(5,1,1,1,5,3,5), numerology.generateOutput(Arrays.asList(3,2,3,4,5)));
+        assertEquals(Arrays.asList(5,1,1,1,3,3,5), numerology.generateOutput(Arrays.asList(3,2,3,4,5)));
     }
     
     @Test
@@ -40,6 +40,26 @@ public class NumerologyTest {
     	assertEquals(Arrays.asList(15,3), numerology.generateOutput(Arrays.asList(15,4)));
     }
     
+    @Test
+    public void testReplaceNoMoreThanOneThreeOrFourOnARow() {
+    	Numerology numerology = new Numerology();
+    	assertEquals(Arrays.asList(11, 12, 5, 20, 3, 17, 3, 3, 12, 5, 10), numerology.generateOutput(Arrays.asList(11, 12, 3, 20, 3, 17, 3, 4, 12, 3, 10)));
+    	assertEquals(Arrays.asList(11, 12, 3, 20, 4, 17, 4, 5, 12, 3, 10), numerology.generateOutput(Arrays.asList(11, 12, 4, 20, 4, 17, 4, 3, 12, 4, 10)));
+    }
+    
+    @Test
+    public void testReplaceNoMoreThanFourThreesAndThreeFoursBeforeASevenAppears() {
+    	Numerology numerology = new Numerology();
+    	assertEquals(Arrays.asList(5, 3, 5, 3, 5, 3, 5, 4, 3, 4, 3, 7, 5, 3, 5, 3), numerology.generateOutput(Arrays.asList(3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 7, 3, 4, 3, 4)));
+    }
+    
+    @Test
+    public void testFringeCasesReplacingThreesAndFours() {
+    	Numerology numerology = new Numerology();
+    	assertEquals(Arrays.asList(5,5), numerology.generateOutput(Arrays.asList(5,3)));
+    	assertEquals(Arrays.asList(3,5), numerology.generateOutput(Arrays.asList(4,5)));
+    }
+    
     
     public class Numerology {
 	
@@ -48,16 +68,19 @@ public class NumerologyTest {
     					new NoRule(), 
     					new NoRule(), 
     					new RuleReplaceTwosForOnes(),
-    					new RuleReplaceThreeByFive(),
-    					new RuleReplaceFourByThree(),
+    					new RuleReplaceThreeAndFour(),
+    					new RuleReplaceThreeAndFour(),
     					new NoRule(),
     					new RuleReplaceSixsForThrees(),
-    					new NoRule(),
+    					new RuleSevenResetsRuleThreeAndFour(),
     					new NoRule(),
     					new RuleReplaceNineForTens()
     			);
     	
     	public List<Integer> generateOutput(List<Integer> input) {
+        	Memory.threesReplaced = 0;
+        	Memory.foursReplaced = 0;
+        	
     		List<Integer> output = new ArrayList<Integer>();
     		for (int i = 0; i< input.size(); i++) {
     			if (input.get(i) < 10) {
@@ -108,25 +131,59 @@ public class NumerologyTest {
 		}
     }
     
-    public class RuleReplaceThreeByFive implements ApplyRuleInterface {
+    public class RuleSevenResetsRuleThreeAndFour implements ApplyRuleInterface {
     	public List<Integer> applyRule(List<Integer> input, Integer index) {
-    		Integer following = input.get(index + 1);
-    		if (!following.equals(5)) {
-    			return Arrays.asList(5);
-    		} else {
-    			return Arrays.asList(input.get(index));
-    		}
+    		Memory.threesReplaced = 0;
+    		Memory.foursReplaced = 0;
+    		Memory.lastFour = false;
+    		Memory.lastThree = false;
+    		return Arrays.asList(input.get(index));
     	}
     }
     
-    public class RuleReplaceFourByThree implements ApplyRuleInterface {
+    public class RuleReplaceThreeAndFour implements ApplyRuleInterface {
     	public List<Integer> applyRule(List<Integer> input, Integer index) {
-    		Integer preceeded = input.get(index - 1);
-    		if(!preceeded.equals(5)) {
-    			return Arrays.asList(3);
-    		} else {
-    			return Arrays.asList(input.get(index));
+    		if(input.get(index).equals(3)) {
+	    		Integer following = (index == input.size()-1) ? 0 : input.get(index + 1);
+	    		if (!following.equals(5) && (Memory.threesReplaced <= Memory.foursReplaced) && Memory.threesReplaced < 4 && !Memory.lastThree) {
+	    			Memory.threesReplaced++;
+	    			Memory.lastThree = true;
+	    			Memory.lastFour = false;
+	    			return Arrays.asList(5);
+	    		} else {
+	    			return Arrays.asList(input.get(index));
+	    		}
+    		} else if (input.get(index).equals(4)) {
+    			Integer preceeded = (index == 0) ? 0 : input.get(index - 1);
+        		if(!preceeded.equals(5) && (Memory.foursReplaced <= Memory.threesReplaced) && Memory.foursReplaced < 3 && !Memory.lastFour) {
+        			Memory.foursReplaced++;
+        			Memory.lastFour = true;
+        			Memory.lastThree = false;
+        			return Arrays.asList(3);
+        		} else {
+        			return Arrays.asList(input.get(index));
+        		}
     		}
+    		return null;
     	}
     }
+    
+    public static class Memory {
+    	static int threesReplaced = 0;
+    	static int foursReplaced = 0;
+    	
+    	static boolean lastThree = false;
+    	static boolean lastFour = false;
+    }
+    
+//    public class RuleReplaceFourByThree implements ApplyRuleInterface {
+//    	public List<Integer> applyRule(List<Integer> input, Integer index) {
+//    		Integer preceeded = input.get(index - 1);
+//    		if(!preceeded.equals(5)) {
+//    			return Arrays.asList(3);
+//    		} else {
+//    			return Arrays.asList(input.get(index));
+//    		}
+//    	}
+//    }
 }
