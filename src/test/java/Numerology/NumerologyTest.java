@@ -16,7 +16,7 @@ public class NumerologyTest {
     @Test 
     public void testReplaceEachNineForTwoTens() {
         Numerology numerology = new Numerology();
-        assertEquals(Arrays.asList(1,1,5,3,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,10), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
+        assertEquals(Arrays.asList(1,1,5,3,4,3,3,3,3,3,3,3,3,3,3,7,8,10,10,9), numerology.generateOutput(Arrays.asList(1,2,3,4,4,6,7,8,9,10)));
     }
     
     @Test
@@ -36,15 +36,15 @@ public class NumerologyTest {
     	Numerology numerology = new Numerology();
     	assertEquals(Arrays.asList(3,5), numerology.generateOutput(Arrays.asList(3,5)));
     	assertEquals(Arrays.asList(5,15), numerology.generateOutput(Arrays.asList(3,15)));
-    	assertEquals(Arrays.asList(5,4), numerology.generateOutput(Arrays.asList(5,4)));
+    	assertEquals(Arrays.asList(5,3), numerology.generateOutput(Arrays.asList(5,4)));
     	assertEquals(Arrays.asList(15,3), numerology.generateOutput(Arrays.asList(15,4)));
     }
     
     @Test
     public void testReplaceNoMoreThanOneThreeOrFourOnARow() {
     	Numerology numerology = new Numerology();
-    	assertEquals(Arrays.asList(11, 12, 5, 20, 3, 17, 3, 3, 12, 5, 10), numerology.generateOutput(Arrays.asList(11, 12, 3, 20, 3, 17, 3, 4, 12, 3, 10)));
-    	assertEquals(Arrays.asList(11, 12, 3, 20, 4, 17, 4, 5, 12, 3, 10), numerology.generateOutput(Arrays.asList(11, 12, 4, 20, 4, 17, 4, 3, 12, 4, 10)));
+    	assertEquals(Arrays.asList(11, 12, 5, 20, 3, 17, 3, 3, 12, 5, 9), numerology.generateOutput(Arrays.asList(11, 12, 3, 20, 3, 17, 3, 4, 12, 3, 10)));
+    	assertEquals(Arrays.asList(11, 12, 3, 20, 4, 17, 4, 5, 12, 3, 9), numerology.generateOutput(Arrays.asList(11, 12, 4, 20, 4, 17, 4, 3, 12, 4, 10)));
     }
     
     @Test
@@ -60,6 +60,15 @@ public class NumerologyTest {
     	assertEquals(Arrays.asList(3,5), numerology.generateOutput(Arrays.asList(4,5)));
     }
     
+    @Test
+    public void testReplaceLastDigitByTheLowestNextOddNumberIfTheFirstDigitIsOdd() {
+    	Numerology numerology = new Numerology();
+    	assertEquals(Arrays.asList(1,11,9), numerology.generateOutput(Arrays.asList(1,11,10)));
+    	assertEquals(Arrays.asList(1,11,11), numerology.generateOutput(Arrays.asList(1,11,11)));
+    	assertEquals(Arrays.asList(12,11,10), numerology.generateOutput(Arrays.asList(12,11,10)));
+    	
+    }
+    
     
     public class Numerology {
 	
@@ -68,8 +77,8 @@ public class NumerologyTest {
     					new NoRule(), 
     					new NoRule(), 
     					new RuleReplaceTwosForOnes(),
-    					new RuleReplaceThreeAndFour(),
-    					new RuleReplaceThreeAndFour(),
+    					new RuleReplaceThree(),
+    					new RuleReplaceFour(),
     					new NoRule(),
     					new RuleReplaceSixsForThrees(),
     					new RuleSevenResetsRuleThreeAndFour(),
@@ -88,6 +97,9 @@ public class NumerologyTest {
     			} else {
     				output.addAll(new NoRule().applyRule(input, i));
     			}
+    		}
+    		if (input.get(0) % 2 != 0 && output.get(output.size()-1) % 2 == 0) {
+    			output.set(output.size()-1, output.get(output.size()-1)-1);
     		}
     		return output;
     	}
@@ -141,30 +153,31 @@ public class NumerologyTest {
     	}
     }
     
-    public class RuleReplaceThreeAndFour implements ApplyRuleInterface {
+    public class RuleReplaceThree implements ApplyRuleInterface {
     	public List<Integer> applyRule(List<Integer> input, Integer index) {
-    		if(input.get(index).equals(3)) {
-	    		Integer following = (index == input.size()-1) ? 0 : input.get(index + 1);
-	    		if (!following.equals(5) && (Memory.threesReplaced <= Memory.foursReplaced) && Memory.threesReplaced < 4 && !Memory.lastThree) {
-	    			Memory.threesReplaced++;
-	    			Memory.lastThree = true;
-	    			Memory.lastFour = false;
-	    			return Arrays.asList(5);
-	    		} else {
-	    			return Arrays.asList(input.get(index));
-	    		}
-    		} else if (input.get(index).equals(4)) {
-    			Integer preceeded = (index == 0) ? 0 : input.get(index - 1);
-        		if(!preceeded.equals(5) && (Memory.foursReplaced <= Memory.threesReplaced) && Memory.foursReplaced < 3 && !Memory.lastFour) {
-        			Memory.foursReplaced++;
-        			Memory.lastFour = true;
-        			Memory.lastThree = false;
-        			return Arrays.asList(3);
-        		} else {
-        			return Arrays.asList(input.get(index));
-        		}
-    		}
-    		return null;
+    		Integer following = (index == input.size()-1) ? 0 : input.get(index + 1);
+	    	if (!following.equals(5) && (Memory.threesReplaced <= Memory.foursReplaced) && Memory.threesReplaced < 4 && !Memory.lastThree) {
+	    		Memory.threesReplaced++;
+	    		Memory.lastThree = true;
+	    		Memory.lastFour = false;
+	    		return Arrays.asList(5);
+	    	} else {
+	    		return Arrays.asList(input.get(index));
+	    	}
+    	}
+    }
+    
+    public class RuleReplaceFour implements ApplyRuleInterface {
+    	public List<Integer> applyRule(List<Integer> input, Integer index) {
+    		Integer preceeded = (index == 0) ? 0 : input.get(index - 1);
+        	if(!preceeded.equals(5) && (Memory.foursReplaced <= Memory.threesReplaced) && Memory.foursReplaced < 3 && !Memory.lastFour) {
+        		Memory.foursReplaced++;
+        		Memory.lastFour = true;
+        		Memory.lastThree = false;
+        		return Arrays.asList(3);
+        	} else {
+        		return Arrays.asList(input.get(index));
+        	}
     	}
     }
     
@@ -176,14 +189,4 @@ public class NumerologyTest {
     	static boolean lastFour = false;
     }
     
-//    public class RuleReplaceFourByThree implements ApplyRuleInterface {
-//    	public List<Integer> applyRule(List<Integer> input, Integer index) {
-//    		Integer preceeded = input.get(index - 1);
-//    		if(!preceeded.equals(5)) {
-//    			return Arrays.asList(3);
-//    		} else {
-//    			return Arrays.asList(input.get(index));
-//    		}
-//    	}
-//    }
 }
