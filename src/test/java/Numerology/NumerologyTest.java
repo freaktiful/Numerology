@@ -57,7 +57,7 @@ public class NumerologyTest {
     public void testFringeCasesReplacingThreesAndFours() {
     	Numerology numerology = new Numerology();
     	assertEquals(Arrays.asList(5,5), numerology.generateOutput(Arrays.asList(5,3)));
-    	assertEquals(Arrays.asList(3,5), numerology.generateOutput(Arrays.asList(4,5)));
+    	assertEquals(Arrays.asList(3,6), numerology.generateOutput(Arrays.asList(4,5)));
     }
     
     @Test
@@ -66,6 +66,15 @@ public class NumerologyTest {
     	assertEquals(Arrays.asList(1,11,9), numerology.generateOutput(Arrays.asList(1,11,10)));
     	assertEquals(Arrays.asList(1,11,11), numerology.generateOutput(Arrays.asList(1,11,11)));
     	assertEquals(Arrays.asList(12,11,10), numerology.generateOutput(Arrays.asList(12,11,10)));
+    	
+    }
+    
+    @Test
+    public void testReplaceLastDigitByTheHighestNextEvenNumberIfTheFirstDigitIsEven() {
+    	Numerology numerology = new Numerology();
+    	assertEquals(Arrays.asList(12,17,6), numerology.generateOutput(Arrays.asList(12,17,5)));
+    	assertEquals(Arrays.asList(12,17,12), numerology.generateOutput(Arrays.asList(12,17,12)));
+    	assertEquals(Arrays.asList(13,11,11), numerology.generateOutput(Arrays.asList(13,11,11)));
     	
     }
     
@@ -100,6 +109,9 @@ public class NumerologyTest {
     		}
     		if (input.get(0) % 2 != 0 && output.get(output.size()-1) % 2 == 0) {
     			output.set(output.size()-1, output.get(output.size()-1)-1);
+    		}
+    		if (input.get(0) % 2 == 0 && output.get(output.size()-1) % 2 != 0) {
+    			output.set(output.size()-1, output.get(output.size()-1)+1);
     		}
     		return output;
     	}
